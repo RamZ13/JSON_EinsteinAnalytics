@@ -1,0 +1,191 @@
+{
+  "Transform_Filter_CurrencyType_EUR": {
+    "action": "filter",
+    "parameters": {
+      "filter": "ISOCode:EQ:EUR",
+      "source": "Extract_CurrencyType"
+    }
+  },
+  "Augment_Opp_EUR_CAD": {
+    "action": "augment",
+    "parameters": {
+      "right_key": [
+        "Id"
+      ],
+      "left": "Augment_OppDummyCurrency_CurrencyType_CAD",
+      "left_key": [
+        "Id"
+      ],
+      "right_select": [
+        "EUR.ConversionRate"
+      ],
+      "right": "Augment_OppDummyCurrency_CurrencyType_EUR",
+      "relationship": "EUR",
+      "operation": "LookupSingleValue"
+    }
+  },
+  "sfdcDigest_Opportunity": {
+    "action": "sfdcDigest",
+    "parameters": {
+      "fields": [
+        {
+          "name": "AccountId"
+        },
+        {
+          "name": "Amount"
+        },
+        {
+          "name": "CloseDate"
+        },
+        {
+          "name": "CreatedDate"
+        },
+        {
+          "name": "Id"
+        },
+        {
+          "name": "Name"
+        },
+        {
+          "name": "OwnerId"
+        },
+        {
+          "name": "StageName"
+        },
+        {
+          "name": "Type"
+        }
+      ],
+      "object": "Opportunity"
+    }
+  },
+  "Transform_Filter_CurrencyType_CAD": {
+    "action": "filter",
+    "parameters": {
+      "filter": "ISOCode:EQ:CAD",
+      "source": "Extract_CurrencyType"
+    }
+  },
+  "Augment_OppDummyCurrency_CurrencyType_CAD": {
+    "action": "augment",
+    "parameters": {
+      "right_key": [
+        "ISOCode"
+      ],
+      "left": "ComputeExpression_Dummy_CurrencyCode_Fields",
+      "left_key": [
+        "DummyFieldCAD"
+      ],
+      "right_select": [
+        "ConversionRate"
+      ],
+      "right": "Transform_Filter_CurrencyType_CAD",
+      "relationship": "CAD",
+      "operation": "LookupSingleValue"
+    }
+  },
+  "sfdcDigest_Account": {
+    "action": "sfdcDigest",
+    "parameters": {
+      "fields": [
+        {
+          "name": "Id"
+        },
+        {
+          "name": "Name"
+        },
+        {
+          "name": "Type"
+        },
+        {
+          "name": "AnnualRevenue"
+        }
+      ],
+      "object": "Account"
+    }
+  },
+  "Register_CurrencyConversion": {
+    "action": "sfdcRegister",
+    "parameters": {
+      "name": "CurrencyConversion",
+      "alias": "CurrencyConversion",
+      "source": "ComputeExpression_AUTO_Currency"
+    }
+  },
+  "Extract_CurrencyType": {
+    "action": "edgemart",
+    "parameters": {
+      "alias": "CurrencyType"
+    }
+  },
+  "Augment_OppDummyCurrency_CurrencyType_EUR": {
+    "action": "augment",
+    "parameters": {
+      "right_key": [
+        "ISOCode"
+      ],
+      "left": "ComputeExpression_Dummy_CurrencyCode_Fields",
+      "left_key": [
+        "DummyFieldE"
+      ],
+      "right_select": [
+        "ConversionRate"
+      ],
+      "right": "Transform_Filter_CurrencyType_EUR",
+      "relationship": "EUR",
+      "operation": "LookupSingleValue"
+    }
+  },
+  "register_Inherit_Sharing_Test": {
+    "action": "sfdcRegister",
+    "parameters": {
+      "rowLevelSecurityFilter": "false",
+      "rowLevelSharingSource": "Account",
+      "name": "Inherit_Sharing_Test",
+      "alias": "Inherit_Sharing_Test",
+      "source": "sfdcDigest_Account"
+    }
+  },
+  "ComputeExpression_Dummy_CurrencyCode_Fields": {
+    "action": "computeExpression",
+    "parameters": {
+      "source": "sfdcDigest_Opportunity",
+      "mergeWithSource": true,
+      "computedFields": [
+        {
+          "name": "DummyFieldE",
+          "saqlExpression": "\"EUR\"",
+          "label": "DummyFieldE",
+          "type": "Text"
+        },
+        {
+          "name": "DummyFieldCAD",
+          "saqlExpression": "\"CAD\"",
+          "label": "DummyFieldCAD",
+          "type": "Text"
+        }
+      ]
+    }
+  },
+  "ComputeExpression_AUTO_Currency": {
+    "action": "computeExpression",
+    "parameters": {
+      "source": "Augment_Opp_EUR_CAD",
+      "mergeWithSource": true,
+      "computedFields": [
+        {
+          "name": "EUR_EURO_R",
+          "saqlExpression": "'Amount' * 'EUR.EUR.ConversionRate'",
+          "label": "EUR_EURO_R",
+          "type": "Numeric"
+        },
+        {
+          "name": "Canadian_Dollar_R",
+          "saqlExpression": "'Amount' * 'CAD.ConversionRate'",
+          "label": "Canadian_Dollar_R",
+          "type": "Numeric"
+        }
+      ]
+    }
+  }
+}
